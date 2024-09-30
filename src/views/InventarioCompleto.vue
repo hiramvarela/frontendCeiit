@@ -32,8 +32,17 @@
       <h2>Inventario Completo</h2>
       <!-- Botón de Agregar Objeto -->
       <div class="add-object-container">
-        <button @click="agregarObjeto" class="add-object-btn">+ Agregar Objeto</button>
+        <button @click="openForm(null)" class="add-object-btn">+ Agregar Objeto</button>
+
       </div>
+      <!-- Modal para el formulario -->
+<div v-if="showForm" class="modal">
+  <div class="modal-content">
+    <FormularioObjeto :objeto="objetoSeleccionado" @submit="handleFormSubmit" />
+    <button class="modal-close" @click="closeForm">Cerrar</button>
+  </div>
+</div>
+
       <!-- Tabla de inventario completo -->
       <table class="inventario-completo-table">
         <thead>
@@ -45,50 +54,73 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, index) in inventarioCompleto" :key="index">
-            <td>{{ item.nombre }}</td>
-            <td>{{ item.ubicacion }}</td>
-            <td>{{ item.estado }}</td>
-            <td>
-              
-              <button @click="realizarPrestamo(item)" class="action-btn">
-                <i class="fas fa-file-contract"></i> Prestar
-              </button>
-              <button @click="editarObjeto(item)" class="action-btn">
-                <i class="fas fa-pencil-alt"></i> Editar
-              </button>
-              <button @click="eliminarObjeto(item)" class="action-btn delete">
-                <i class="fas fa-trash"></i>  Borrar
-              </button>
-            </td>
-          </tr>
-        </tbody>
+  <tr v-for="(item) in inventarioCompleto" :key="item._id">
+    <td>{{ item.nombre }}</td>
+    <td>{{ item.ubicacion }}</td>
+    <td>{{ item.estado }}</td>
+    <td>
+      <button @click="realizarPrestamo(item)" class="action-btn">
+        <i class="fas fa-file-contract"></i> Prestar
+      </button>
+      <button @click="openForm(item)" class="action-btn">
+  <i class="fas fa-pencil-alt"></i> Editar
+</button>
+      <button @click="eliminarObjeto(item)" class="action-btn delete">
+        <i class="fas fa-trash"></i>  Borrar
+      </button>
+    </td>
+  </tr>
+</tbody>
+
       </table>
     </main>
   </div>
 </template>
 
 <script>
+import axios from 'axios';
+import FormularioObjeto from './Formulario.vue';
+
 export default {
   name: 'InventarioCompletoView',
+  components: {
+    FormularioObjeto,
+  }, 
   data() {
-    return {
-      isMenuOpen: false,
-      inventarioCompleto: [
-        {
-          nombre: 'Laptop Dell',
-          ubicacion: 'Laboratorio 1',
-          estado: 'Disponible'
-        },
-        {
-          nombre: 'Proyector Epson',
-          ubicacion: 'Sala de Conferencias',
-          estado: 'Ocupado'
-        }
-      ]
-    };
-  },
+  return {
+    isMenuOpen: false,
+    inventarioCompleto: [],
+    showForm: false, 
+    objetoSeleccionado: null 
+  };
+},
   methods: {
+    openForm(objeto) {
+    this.objetoSeleccionado = objeto ? { ...objeto } : {}; // Si objeto es nulo, es un nuevo objeto
+    this.showForm = true; // Mostrar el modal del formulario
+  },
+  closeForm() {
+    this.showForm = false; // Cerrar el modal del formulario
+  },
+  handleFormSubmit(form) {
+    if (form._id) {
+      // Lógica para actualizar el objeto
+      axios.put(`https://server-five-rho-19.vercel.app/objetos/${form._id}`, form)
+        .then(() => {
+          this.fetchInventarioCompleto();
+          this.closeForm();
+        })
+        .catch(error => console.error('Error al actualizar el objeto:', error));
+    } else {
+      // Lógica para crear un nuevo objeto
+      axios.post('https://server-five-rho-19.vercel.app/objetos', form)
+        .then(() => {
+          this.fetchInventarioCompleto();
+          this.closeForm();
+        })
+        .catch(error => console.error('Error al crear el objeto:', error));
+    }
+  },
     toggleMenu() {
       this.isMenuOpen = !this.isMenuOpen;
     },
@@ -96,25 +128,42 @@ export default {
       this.isMenuOpen = false;
       this.$router.push({ name: option });
     },
-    realizarPrestamo(item) {
+    async fetchInventarioCompleto() {
+      try {
+        const response = await axios.get('https://server-five-rho-19.vercel.app/objetos');
+        this.inventarioCompleto = response.data;
+      } catch (error) {
+        console.error('Error fetching inventario completo:', error);
+      }
+    },
+    async realizarPrestamo(item) {
       alert(`Has seleccionado realizar un préstamo para: ${item.nombre}`);
-      // Lógica para realizar préstamo
+      // Implementa la lógica para realizar un préstamo usando la API
     },
-    editarObjeto(item) {
+    async editarObjeto(item) {
       alert(`Editando: ${item.nombre}`);
-      // Lógica para editar el objeto
+      // Implementa la lógica para editar el objeto usando la API
     },
-    eliminarObjeto(item) {
-      alert(`Eliminando: ${item.nombre}`);
-      // Lógica para eliminar el objeto
+    async eliminarObjeto(item) {
+      try {
+        await axios.delete(`https://server-five-rho-19.vercel.app/objetos/${item._id}`);
+        this.inventarioCompleto = this.inventarioCompleto.filter(i => i._id !== item._id);
+        alert(`Eliminado: ${item.nombre}`);
+      } catch (error) {
+        console.error('Error eliminando el objeto:', error);
+      }
     },
-    agregarObjeto() {
+    async agregarObjeto() {
       alert('Agregar un nuevo objeto');
-      // Lógica para agregar un nuevo objeto
+      // Lógica para agregar un nuevo objeto usando la API
     }
+  },
+  mounted() {
+    this.fetchInventarioCompleto(); // Cargar inventario cuando el componente se monta
   }
 };
 </script>
+
 
 <style scoped>
 .dashboard-container {
