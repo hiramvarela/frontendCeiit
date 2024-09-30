@@ -190,7 +190,9 @@ export default {
   box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
   transform: translateX(100%);
   transition: transform 0.3s ease-in-out;
+  z-index: 100; 
 }
+
 
 .dashboard-menu.open {
   transform: translateX(0);
@@ -246,7 +248,9 @@ export default {
 
 .dropdown-container {
   position: relative;
+  z-index: 1; 
 }
+
 
 .dropdown-btn {
   background-color: #004a87;
