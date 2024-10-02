@@ -23,52 +23,55 @@
         </select>
       </div>
 
-      <!-- Categoría del objeto -->
-      <div class="form-group">
-        <label for="categoria">Categoría</label>
-        <input type="text" id="categoria" v-model="form.categoria" />
-      </div>
-
-      <!-- Valor del objeto -->
-      <div class="form-group">
-        <label for="valor">Valor</label>
-        <input type="number" id="valor" v-model="form.valor" />
-      </div>
-
-      <!-- Fecha de adquisición -->
-      <div class="form-group">
-        <label for="fechaAdquisicion">Fecha de Adquisición</label>
-        <input type="date" id="fechaAdquisicion" v-model="form.fechaAdquisicion" />
-      </div>
-
-      <!-- URL de la imagen (si existe) -->
-      <div class="form-group">
-        <label for="urlImagen">Imagen del objeto</label>
-        <input type="text" id="urlImagen" v-model="form.urlImagen" />
-        <img :src="form.urlImagen || defaultImage" alt="Imagen del objeto" class="image-preview" />
-      </div>
-
-      <!-- Botones -->
-      <button type="submit" class="submit-btn">
-        {{ isEditMode ? 'Guardar Cambios' : 'Crear Objeto' }}
-      </button>
-      <button type="button" @click="$emit('cancel')" class="cancel-btn">Cancelar</button>
-
-      <!-- Mostrar más campos opcionales -->
-      <button type="button" @click="toggleOpcionales" class="toggle-opcionales-btn">
-        {{ mostrarOpcionales ? 'Ocultar' : 'Mostrar más' }} campos opcionales
-      </button>
-
-      <!-- Sección opcional (campos no obligatorios) -->
+      <!-- Sección opcional (campos adicionales) -->
       <div v-if="mostrarOpcionales" class="opcionales-container">
+        <!-- Categoría del objeto -->
+        <div class="form-group">
+          <label for="categoria">Categoría</label>
+          <input type="text" id="categoria" v-model="form.categoria" />
+        </div>
+
+        <!-- Valor del objeto -->
+        <div class="form-group">
+          <label for="valor">Valor del objeto (pesos mexicanos)</label>
+          <input type="number" id="valor" v-model="form.valor" />
+        </div>
+
+        <!-- Fecha de adquisición -->
+        <div class="form-group">
+          <label for="fechaAdquisicion">Fecha de Adquisición</label>
+          <input type="date" id="fechaAdquisicion" v-model="form.fechaAdquisicion" />
+        </div>
+
+        <!-- URL de la imagen (si existe) -->
+        <div class="form-group">
+          <label for="urlImagen">Imagen del objeto</label>
+          <input type="text" id="urlImagen" v-model="form.urlImagen" />
+          <img :src="form.urlImagen || defaultImage" alt="Imagen del objeto" class="image-preview" />
+        </div>
+
+        <!-- Descripción del objeto -->
         <div class="form-group">
           <label for="descripcion">Descripción</label>
           <textarea id="descripcion" v-model="form.descripcion" placeholder="Sin descripción"></textarea>
         </div>
+
+        <!-- Fecha de último mantenimiento -->
         <div class="form-group">
           <label for="fechaUltimoMantenimiento">Fecha de último mantenimiento</label>
           <input type="date" id="fechaUltimoMantenimiento" v-model="form.fechaUltimoMantenimiento" />
         </div>
+      </div>
+
+      <!-- Botones: se mueven abajo si se muestran los campos adicionales -->
+      <div class="button-container">
+        <button type="submit" class="submit-btn">
+          {{ isEditMode ? 'Guardar Cambios' : 'Crear Objeto' }}
+        </button>
+        <button type="button" @click="$emit('cancel')" class="cancel-btn">Cancelar</button>
+        <button type="button" @click="toggleOpcionales" class="toggle-opcionales-btn">
+          {{ mostrarOpcionales ? 'Ocultar' : 'Mostrar más' }} campos adicionales
+        </button>
       </div>
     </form>
 
@@ -213,17 +216,34 @@ export default {
   border-radius: 4px;
 }
 
-.submit-btn {
-  background-color: #004a87;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  cursor: pointer;
+.button-group {
+  display: flex;
+  gap: 10px;
+}
+
+.submit-btn, .cancel-btn {
+  font-size: 0.7rem; /* Tamaño de texto más pequeño */
+  padding: 0.5rem 1rem; /* Ajusta el relleno para hacerlo más pequeño */
+  min-width: 20%; /* Asegura que ambos botones tengan el mismo tamaño mínimo */
   border-radius: 4px;
 }
 
+.submit-btn {
+  background-color: #004a87;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
 .cancel-btn {
-  margin-left: 1rem;
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+.submit-btn:hover, .cancel-btn:hover {
+  opacity: 0.8;
 }
 
 .image-preview {
@@ -244,6 +264,15 @@ export default {
 
 .opcionales-container {
   margin-top: 1rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Botón contenedor ajustado */
+.button-container {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 2rem;
   width: 100%;
   max-width: 400px;
 }
