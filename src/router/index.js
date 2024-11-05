@@ -5,6 +5,7 @@ import PrestamosTerminadosView from '../views/PrestamosTerminados.vue';
 import InventarioCompletoView from '../views/InventarioCompleto.vue';
 import UsuariosRegistradosView from '../views/UsuariosRegistrados.vue';
 import VerContratosView from '../views/VerContratos.vue';
+import ScannerObjetosView from '../views/ScannerObjetos.vue';
 import FormularioObjeto from '../components/FormularioObjeto.vue'; // Import the form component
 
 const routes = [
@@ -37,6 +38,11 @@ const routes = [
     path: '/VerContratos',
     name: 'VerContratos',
     component: VerContratosView
+  },
+  {
+    path: '/ScannerObjetos',
+    name: 'ScannerObjetos',
+    component: ScannerObjetosView
   },
   // New route for creating an object
   {

@@ -24,6 +24,7 @@
         <li @click="selectOption('PrestamosTerminados')">Préstamos Terminados</li>
         <li @click="selectOption('UsuariosRegistrados')">Usuarios Registrados</li>
         <li @click="selectOption('VerContratos')">Ver Contratos</li>
+        <li @click="selectOption('ScannerObjetos')">Scanner</li>
       </ul>
     </aside>
 
