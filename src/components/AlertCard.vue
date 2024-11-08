@@ -1,121 +1,104 @@
 <template>
-    <div :class="['alert-card', alertTypeClass]">
-      <p class="alert-message">{{ message }}</p>
-      <div class="alert-actions">
-        <!-- Botón de confirmación solo si se requiere confirmar la acción -->
-        <button v-if="showConfirm" @click="confirmAction" class="confirm-btn">Confirmar</button>
-        <!-- Botón de cerrar la alerta -->
-        <button @click="closeAlert" class="close-btn">Cerrar</button>
+  <div class="card-container">
+    <div class="card-content">
+      <div class="left-section">
+        <img :src="qrCode" alt="Código QR" class="qr-image" />
+        <img :src="entityData.urlImagen || defaultImage" alt="Imagen" class="object-image" />
+      </div>
+      <div class="right-section">
+        <h2>{{ entityData.name || entityData.nombre }}</h2>
+        <p v-if="entityData.surName" class="user-surname">Apellido: {{ entityData.surName }}</p>
+        <p v-if="entityData.tuition" class="user-tuition">Matrícula: {{ entityData.tuition }}</p>
+        <p v-if="entityData.ubicacion" class="location">Ubicación: {{ entityData.ubicacion }}</p>
+        <p v-if="entityData.estado" class="estado">Estado: {{ entityData.estado }}</p>
+
+        <template v-if="showMore">
+          <p v-if="entityData.descripcion" class="description">Descripción: {{ entityData.descripcion }}</p>
+          <p v-if="entityData.email" class="user-email">Email: {{ entityData.email }}</p>
+          <p v-if="entityData.categoria" class="category">Categoría: {{ entityData.categoria }}</p>
+          <p v-if="entityData.fechaUltimoMantenimiento" class="maintenance">
+            Último Mantenimiento: {{ entityData.fechaUltimoMantenimiento }}
+          </p>
+        </template>
+
+        <button @click="toggleShowMore">{{ showMore ? 'Mostrar menos' : 'Mostrar más' }}</button>
+
+        <!-- Botón para Concluir Préstamo si aplica -->
+        <div v-if="loanData">
+          <textarea v-model="observaciones" placeholder="Observaciones (opcional)" class="observaciones"></textarea>
+          <button @click="concludeLoan">Concluir Préstamo</button>
+        </div>
       </div>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    name: 'AlertCard',
-    props: {
-      message: {
-        type: String,
-        required: true
-      },
-      type: {
-        type: String,
-        default: 'info' // success, error, warning, etc.
-      },
-      showConfirm: {
-        type: Boolean,
-        default: false // Si es una alerta de confirmación
-      }
+  </div>
+</template>
+
+<script>
+export default {
+  props: {
+    objectData: {
+      type: Object,
+      default: null,
     },
-    computed: {
-      alertTypeClass() {
-        switch (this.type) {
-          case 'success':
-            return 'alert-success';
-          case 'error':
-            return 'alert-error';
-          case 'warning':
-            return 'alert-warning';
-          default:
-            return 'alert-info';
+    userData: {
+      type: Object,
+      default: null,
+    },
+    loanData: {
+      type: Object,
+      default: null,
+    },
+    qrCode: {
+      type: String,
+      required: true,
+    },
+  },
+  computed: {
+    entityData() {
+      return this.objectData || this.userData || {};
+    },
+  },
+  data() {
+    return {
+      showMore: false,
+      defaultImage: "@/assets/default-user-image.png", // Imagen predeterminada
+      observaciones: "", // Observaciones para concluir préstamo
+    };
+  },
+  methods: {
+    toggleShowMore() {
+      this.showMore = !this.showMore;
+    },
+    async concludeLoan() {
+      if (!this.loanData?._id) {
+        alert("No hay préstamo asociado para concluir.");
+        return;
+      }
+
+      try {
+        const response = await fetch("https://ulsaceiit.xyz/ulsa/returnLoan", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            loanId: this.loanData._id,
+            observaciones: this.observaciones,
+          }),
+        });
+
+        const result = await response.json();
+        if (result.mensaje === "Préstamo devuelto correctamente") {
+          alert("Préstamo concluido correctamente.");
+          this.$emit("loanConcluded"); // Emitir evento para recargar datos o actualizar UI
+        } else {
+          alert("Hubo un problema al concluir el préstamo.");
         }
+      } catch (error) {
+        console.error("Error concluyendo préstamo:", error);
+        alert("Error al intentar concluir el préstamo.");
       }
     },
-    methods: {
-      confirmAction() {
-        this.$emit('confirm');
-      },
-      closeAlert() {
-        this.$emit('close');
-      }
-    }
-  };
-  </script>
-  
-  <style scoped>
-  .alert-card {
-    padding: 1rem;
-    border-radius: 5px;
-    margin-bottom: 1rem;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .alert-success {
-    background-color: #d4edda;
-    color: #155724;
-  }
-  
-  .alert-error {
-    background-color: #f8d7da;
-    color: #721c24;
-  }
-  
-  .alert-warning {
-    background-color: #fff3cd;
-    color: #856404;
-  }
-  KOBLENZ
-  .alert-info {
-    background-color: #d1ecf1;
-    color: #0c5460;
-  }
-  
-  .alert-message {
-    flex: 1;
-  }
-  
-  .alert-actions {
-    display: flex;
-    gap: 0.5rem;
-  }
-  
-  .confirm-btn,
-  .close-btn {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .confirm-btn {
-    background-color: #28a745;
-    color: white;
-  }
-  
-  .close-btn {
-    background-color: #6c757d;
-    color: white;
-  }
-  
-  .confirm-btn:hover {
-    background-color: #218838;
-  }
-  
-  .close-btn:hover {
-    background-color: #5a6268;
-  }
-  </style>
-  
+  },
+};
+</script>

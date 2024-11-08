@@ -24,6 +24,7 @@
           <li @click="selectOption('InventarioCompleto')">Inventario Completo</li>
           <li @click="selectOption('UsuariosRegistrados')">Usuarios Registrados</li>
           <li @click="selectOption('VerContratos')">Ver Contratos</li>
+          <li @click="selectOption('IniciarPrestamo')">Iniciar Prestamo</li>
         </ul>
       </aside>
   
