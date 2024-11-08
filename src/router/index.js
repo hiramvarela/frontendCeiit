@@ -5,13 +5,20 @@ import PrestamosTerminadosView from '../views/PrestamosTerminados.vue';
 import InventarioCompletoView from '../views/InventarioCompleto.vue';
 import UsuariosRegistradosView from '../views/UsuariosRegistrados.vue';
 import VerContratosView from '../views/VerContratos.vue';
-import FormularioObjeto from '../components/FormularioObjeto.vue'; // Import the form component
+import ScannerObjetosView from '../views/ScannerObjetos.vue';
+import FormularioObjeto from '../components/FormularioObjeto.vue';
+import RealizarPrestamos from '../views/RealizarPrestamos.vue'; // Nueva ruta
 
 const routes = [
   {
     path: '/',
     name: 'DashboardView',
     component: DashboardView
+  },
+  {
+    path: '/IniciarPrestamo',
+    name: 'IniciarPrestamo',
+    component: ScannerObjetosView
   },
   {
     path: '/PrestamosActivos',
@@ -38,29 +45,23 @@ const routes = [
     name: 'VerContratos',
     component: VerContratosView
   },
-  // New route for creating an object
+  {
+    path: '/RealizarPrestamos/:id',
+    name: 'RealizarPrestamos',
+    component: RealizarPrestamos
+  },
   {
     path: '/inventario/crear',
     name: 'CrearObjeto',
     component: FormularioObjeto,
-    props: { objeto: null } // No objeto prop passed for creating a new object
+    props: { objeto: null }
   },
-  // New route for editing an object
   {
     path: '/inventario/editar/:id',
     name: 'EditarObjeto',
     component: FormularioObjeto,
-    props: true // Pass the id parameter to the component for editing
+    props: true
   },
-  // Optional: View object details route (could link to viewing a single object)
-  /*
-  {
-    path: '/inventario/ver/:id',
-    name: 'VerObjeto',
-    component: FormularioObjeto,
-    props: true // View details of an object
-  }
-    */
 ];
 
 const router = createRouter({

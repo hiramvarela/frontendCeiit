@@ -1,105 +1,106 @@
 <template>
-  <div class="dashboard-container">
-    <!-- Barra superior con título e imagen -->
-    <header class="dashboard-header">
-      <div class="header-left">
-        <h1>Inventario Completo</h1>
-      </div>
-      <div class="header-center">
-        <img class="ulsa-logo" src="@/assets/ulsalogo.png" alt="ULSA Logo" />
-      </div>
-      <div class="header-right">
-        <button @click="toggleMenu" class="menu-toggle">☰ Dashboard</button>
-      </div>
-    </header>
+  <div>
+    <!-- Spinner de carga -->
+    <div v-if="isLoading" class="loading-container">
+      <div class="spinner"></div>
+    </div>
 
-    <!-- Menú desplegable desde la derecha -->
-    <aside :class="['dashboard-menu', { open: isMenuOpen }]">
-      <div class="menu-header">
-        <button @click="toggleMenu" class="close-menu">✖</button>
+    <!-- Contenido de la página principal -->
+    <div v-else class="dashboard-container">
+      <!-- Barra superior con título e imagen -->
+      <header class="dashboard-header">
+        <div class="header-left">
+          <h1>Inventario Completo</h1>
+        </div>
+        <div class="header-center">
+          <img class="ulsa-logo" src="@/assets/ulsalogo.png" alt="ULSA Logo" />
+        </div>
+        <div class="header-right">
+          <button @click="toggleMenu" class="menu-toggle">☰ Dashboard</button>
+        </div>
+      </header>
+
+      <!-- Menú desplegable desde la derecha -->
+      <aside :class="['dashboard-menu', { open: isMenuOpen }]">
+        <div class="menu-header">
+          <button @click="toggleMenu" class="close-menu">✖</button>
+        </div>
+        <ul>
+          <li @click="selectOption('DashboardView')">Objetos Activos</li>
+          <li @click="selectOption('PrestamosActivos')">Préstamos Activos</li>
+          <li @click="selectOption('PrestamosTerminados')">Préstamos Terminados</li>
+          <li @click="selectOption('UsuariosRegistrados')">Usuarios Registrados</li>
+          <li @click="selectOption('VerContratos')">Ver Contratos</li>
+          <li @click="selectOption('IniciarPrestamo')">Iniciar préstamo</li>
+        </ul>
+      </aside>
+
+      <!-- Toolbar encima de la tabla -->
+      <div class="toolbar">
+        <input v-model="searchQuery" placeholder="Buscar por nombre" class="search-bar" />
+        <div class="dropdown">
+          <button class="dropdown-btn">Ordenar</button>
+          <div class="dropdown-content">
+            <label v-for="(col, index) in activeColumns" :key="index" class="dropdown-item" @click="sortBy(col)">
+              {{ col }} 
+              <span v-if="currentSort === col">
+                {{ currentSortDir === 'asc' ? '⬆️' : '⬇️' }}
+              </span>
+            </label>
+          </div>
+        </div>
+        <div class="dropdown">
+          <button class="dropdown-btn">Mostrar</button>
+          <div class="dropdown-content">
+            <label v-for="col in allColumns" :key="col" class="dropdown-item">
+              <input type="checkbox" v-model="selectedColumns" :value="col" /> {{ col }}
+            </label>
+          </div>
+        </div>
+        <button @click="openForm(null)" class="add-object-btn">+ Agregar Objeto</button>
       </div>
-      <ul>
-        <li @click="selectOption('DashboardView')">Objetos Activos</li>
-        <li @click="selectOption('PrestamosActivos')">Préstamos Activos</li>
-        <li @click="selectOption('PrestamosTerminados')">Préstamos Terminados</li>
-        <li @click="selectOption('UsuariosRegistrados')">Usuarios Registrados</li>
-        <li @click="selectOption('VerContratos')">Ver Contratos</li>
-      </ul>
-    </aside>
 
-    <!-- Toolbar encima de la tabla -->
-    <div class="toolbar">
-      <!-- Barra de búsqueda -->
-      <input v-model="searchQuery" placeholder="Buscar por nombre" class="search-bar" />
-
-      <!-- Dropdown para ordenar registros -->
-      <div class="dropdown">
-        <button class="dropdown-btn">Ordenar</button>
-        <div class="dropdown-content">
-          <label v-for="(col, index) in activeColumns" :key="index" class="dropdown-item" @click="sortBy(col)">
-            {{ col }} 
-            <span v-if="currentSort === col">
-              {{ currentSortDir === 'asc' ? '⬆️' : '⬇️' }}
-            </span>
-          </label>
+      <!-- Modal para el formulario -->
+      <div v-if="showForm" class="modal">
+        <div class="modal-content">
+          <FormularioObjeto :objeto="objetoSeleccionado" @submit="handleFormSubmit" @cancel="closeForm" />
         </div>
       </div>
 
-      <!-- Dropdown para mostrar columnas con checkboxes -->
-      <div class="dropdown">
-        <button class="dropdown-btn">Mostrar</button>
-        <div class="dropdown-content">
-          <label v-for="col in allColumns" :key="col" class="dropdown-item">
-            <input type="checkbox" v-model="selectedColumns" :value="col" /> {{ col }}
-          </label>
-        </div>
-      </div>
-
-      <!-- Botón de agregar objeto -->
-      <button @click="openForm(null)" class="add-object-btn">+ Agregar Objeto</button>
+      <!-- Tabla de inventario completo -->
+      <table class="inventario-completo-table">
+        <thead>
+          <tr>
+            <th v-for="col in activeColumns" :key="col">{{ col }}</th>
+            <th>Opciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(item) in filteredAndSortedItems" :key="item._id" :class="rowClass(item)">
+            <td v-for="col in activeColumns" :key="col">{{ item[col] }}</td>
+            <td>
+              <button @click="openForm(item)" class="action-btn">
+                <i class="fas fa-pencil-alt"></i> Editar
+              </button>
+              <button @click="confirmDelete(item._id)" class="action-btn delete">
+                <i class="fas fa-trash"></i> Borrar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-
-    <!-- Modal para el formulario -->
-    <div v-if="showForm" class="modal">
-      <div class="modal-content">
-        <FormularioObjeto :objeto="objetoSeleccionado" @submit="handleFormSubmit" @cancel="closeForm" />
-        
-      </div>
-    </div>
-
-    <!-- Tabla de inventario completo -->
-    <table class="inventario-completo-table">
-      <thead>
-        <tr>
-          <th v-for="col in activeColumns" :key="col">{{ col }}</th>
-          <th>Opciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(item) in filteredAndSortedItems" :key="item._id" :class="rowClass(item)">
-          <td v-for="col in activeColumns" :key="col">{{ item[col] }}</td>
-          <td>
-            <button @click="openForm(item)" class="action-btn">
-              <i class="fas fa-pencil-alt"></i> Editar
-            </button>
-            <button @click="confirmDelete(item._id)" class="action-btn delete">
-              <i class="fas fa-trash"></i> Borrar
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
   </div>
 </template>
 
 <script>
 import { getObjetos, deleteObjeto } from '../services/API';
-import FormularioObjeto from '@/components/FormularioObjeto.vue'; // Importación del componente
+import FormularioObjeto from '@/components/FormularioObjeto.vue';
 
 export default {
   name: 'InventarioCompletoView',
   components: {
-    FormularioObjeto, // Registro del componente
+    FormularioObjeto,
   },
   data() {
     return {
@@ -112,6 +113,7 @@ export default {
       currentSortDir: 'asc',
       allColumns: ['nombre', 'ubicacion', 'estado', 'codigoQR', 'descripcion', 'categoria', 'valor', 'fechaAdquisicion'],
       isMenuOpen: false,
+      isLoading: true, // Estado de carga inicial
     };
   },
   computed: {
@@ -153,12 +155,16 @@ export default {
     openForm(objeto) {
       this.objetoSeleccionado = objeto ? { ...objeto } : {};
       this.showForm = true;
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
     },
     closeForm() {
       this.showForm = false;
     },
-    handleFormSubmit() {
-      this.fetchInventarioCompleto();
+    async handleFormSubmit() {
+      await this.fetchInventarioCompleto();
       this.closeForm();
     },
     async confirmDelete(id) {
@@ -166,7 +172,7 @@ export default {
       if (confirmed) {
         try {
           await deleteObjeto(id);
-          this.fetchInventarioCompleto();
+          await this.fetchInventarioCompleto();
         } catch (error) {
           console.error('Error al eliminar el objeto:', error);
         }
@@ -185,12 +191,41 @@ export default {
     },
   },
   mounted() {
-    this.fetchInventarioCompleto();
+    setTimeout(() => {
+      this.isLoading = false;
+      this.fetchInventarioCompleto();
+    }, 3000); // Carga de 3 segundos
   },
 };
 </script>
 
 <style scoped>
+/* Spinner de carga */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.spinner {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 /* Estilos generales */
 .dashboard-container {
   display: flex;

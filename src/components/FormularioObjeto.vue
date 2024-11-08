@@ -147,7 +147,7 @@ export default {
       form: { ...this.objeto },
       mostrarOpcionales: false,
       isEditMode: !!this.objeto._id,
-      isCreatedView: false, // Para controlar si estamos viendo los detalles después de la creación
+      isCreatedView: false,
       qrCodeSrc: '',
       defaultImage: '@/assets/default-image.png'
     };
@@ -166,20 +166,20 @@ export default {
         if (this.isEditMode) {
           // Actualizar objeto
           await updateObjeto(this.form._id, this.form);
-          alert('Objeto actualizado con éxito');
+          
         } else {
           // Crear nuevo objeto
-          const response = await createObjeto(this.form);
-          this.form = { ...response.data }; // Actualiza el formulario con los datos recibidos del servidor
-          this.isCreatedView = true; // Cambia a la vista de detalles
-          this.generateQrCode(); // Genera el código QR
+          await createObjeto(this.form);
+          
         }
+        // Refresca la página después de guardar cambios o crear un objeto
+        location.reload();
       } catch (error) {
         console.error('Error al enviar el formulario:', error);
       }
     },
     finishCreation() {
-      window.location.href = 'http://localhost:8081/InventarioCompleto';
+      location.reload(); // Refresca la página después de finalizar la creación
     }
   },
   watch: {
@@ -187,6 +187,7 @@ export default {
   }
 };
 </script>
+
 
 <style scoped>
 .form-container {
